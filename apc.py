@@ -19,7 +19,7 @@ Commands:
   --help                 Print this usage screen
 
 Options:
-  --config <filename>    Point to custom config file [default: ~/.config/apc/config]
+  --config <filename>    Point to custom config file [default: ~/.config/apc/config.yaml]
 
 """
 import os
@@ -32,26 +32,40 @@ import docopt
 
 def main():
     args = docopt.docopt(__doc__)
-    print(args) # TODO: remove this line - initial debug ONLY
     config = ConfigFile(args['--config'])
     error = run_command(args, config)
     sys.exit(error)
-    
+
 # --------------- Command Handlers ---------------
 
 def on_command(args, config):
     print("on command")
     config.read()
+    port = args.get("<port>") or config.last_port
+    if port is None:
+        print('Please specify a port number.')
+        return -1
+    if not port == config.last_port:
+        config.last_port = port
+    print("I'm going to telnet to", config.hostname)
+    print(" to port", port)
     print(config)
+    config.write()
+
+def clear():
+    os.system("clear")
 
 def off_command(args, config):
     print("off command")
+    config.read()
 
 def reset_command(args, config):
     print("reset command")
+    config.read()
 
 def list_command(args, config):
     print("list command")
+    config.read()
 
 def set_alias_command(args, config):
     print("set alias command")
@@ -105,18 +119,26 @@ class ConfigFile(object):
     def read(self):
         "Read config file from disk, decode yaml and populate fields"
         with open(self.filename, 'r') as handle:
-            self.__data = yaml.load(handle)
-            self.hostname = self.__data.get('hostname')
-            self.user = self.__data.get('user')
-            self.password = self.__data.get('password')
-            self.last_port = self.__data.get('last_port')
-            self.description = self.__data.get('description')
-            self.aliases = self._create_aliases(self.__data.get('aliases'))
-            self.descriptions = self._create_descriptions(self.__data.get('aliases'))
+            data = yaml.safe_load(handle)
+            self.hostname = data.get('hostname')
+            self.user = data.get('user')
+            self.password = data.get('password')
+            self.last_port = data.get('last_port')
+            self.description = data.get('description')
+            self.aliases = self._create_aliases(data.get('aliases'))
+            self.descriptions = self._create_descriptions(data.get('aliases'))
 
     def write(self):
         "Write POD to config file in yaml format"
-        pass
+        file = open(self.filename, 'w')
+        aliases = []
+        for port in self.aliases:
+            entry = { 'port' : port, 'name' : self.aliases[port], 'description' : self.descriptions[port]}
+            aliases.append(entry)
+        data = {'hostname' : self.hostname , 'user' : self.user ,
+                'password' : self.password ,'last_port' : self.last_port ,
+                'description' : self.description , 'aliases' : aliases }
+        yaml.dump(data, file)
 
     def set_alias(self, num, name):
         "Add or overwrite a port alias"
@@ -137,7 +159,10 @@ class ConfigFile(object):
         """Turn list of dictionaries into a dictionary with the port number and alias
         """
         alias_dict = {}
+        num = {}
+        name = {}
         for entry in yaml_list:
+            print(entry)
             num = entry.get('port')
             name = entry.get('name')
             if num is not None and name is not None:
@@ -225,3 +250,4 @@ class Apc(object):
 
 if __name__ == "__main__":
     main()
+
