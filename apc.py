@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#! python3
 """apc.py - Control APC network power strip
 
 Usage:
@@ -19,19 +19,34 @@ Commands:
   --help                 Print this usage screen
 
 Options:
+<<<<<<< Updated upstream
   --config <filename>    Point to custom config file [default: ~/.config/apc/config.yaml]
+=======
+  --config <filename>    Point to custom config file [default: C:/Users/corya/github/apccontrol-python/devconfig.yml]
+>>>>>>> Stashed changes
 
 """
 import os
 import sys
 import yaml
 import docopt
-
+import os.path
+import telnetlib
+#with Telnet('192.168.1.98', 23) as tn:
+#    tn.interact()
+#    tn.set_debuglevel(9)
 
 # --------------- Application Entrypoint ---------------
 
 def main():
+    #prog = __file__
+    #directory = os.path.dirname(os.path.abspath(prog))
+    #print(os.path.join(directory, 'devconfig.yml'))
     args = docopt.docopt(__doc__)
+<<<<<<< Updated upstream
+=======
+    #print(args) # TODO: remove this line - initial debug ONLY
+>>>>>>> Stashed changes
     config = ConfigFile(args['--config'])
     error = run_command(args, config)
     sys.exit(error)
@@ -47,8 +62,35 @@ def on_command(args, config):
         return -1
     if not port == config.last_port:
         config.last_port = port
+<<<<<<< Updated upstream
     print("I'm going to telnet to", config.hostname)
     print(" to port", port)
+=======
+    port = int(port)
+    print("I'm going to telnet to", config.hostname)
+    tn = telnetlib.Telnet('192.168.1.98')
+    tn.set_debuglevel(9)
+    tn.read_until(b'User Name : ', 5)
+    tn.write(b'cor\r')
+    tn.read_until(b'Password  : ', 5)
+    tn.write(b'dev2020\r')
+    tn.read_until(b'<CTRL-L>', 5)
+    tn.write(b'1\r')
+    tn.read_until(b'<CTRL-L>', 5)
+    tn.write(b'2\r')
+    tn.read_until(b'<CTRL-L>', 5)
+    tn.write(b'1\r')
+    tn.read_until(b'<CTRL-L>', 5)
+    tn.write(b'%d\r' % port)
+    tn.read_until(b'<CTRL-L>', 5)
+    tn.write(b'1\r')
+    tn.read_until(b'<CTRL-L>', 5)
+    tn.write(b'1\r')
+    tn.read_until(b'cancel :', 5)
+    tn.write(b'YES\r')
+    tn.read_until(b'continue...', 5)
+    tn.write(b'\r')
+>>>>>>> Stashed changes
     print(config)
     config.write()
 
@@ -57,11 +99,43 @@ def clear():
 
 def off_command(args, config):
     print("off command")
+<<<<<<< Updated upstream
     config.read()
 
 def reset_command(args, config):
     print("reset command")
     config.read()
+=======
+    #config.read()
+    #port = args.get("<port>") or config.last_port
+    #if port is None:
+    #    print('Please specify a port number')
+    #    return -1
+    #if not port == config.last_port:
+    #    config.last_port = port
+    #print("I'm going to telnet to", config.hostname)
+    #tn = telnetlib.Telnet('192.168.1.98')
+    #tn.read_until(b'User Name : ', 5)
+    #time.sleep(2)
+    #tn.write(b'cor\n')
+    #print(config)
+
+def reset_command(args, config):
+    print("reset command")
+    #config.read()
+    #port = args.get("<port>") or config.last_port
+    #if port is None:
+    #    print('Please specify a port number')
+    #    return -1
+    #if not port == config.last_port:
+    #    config.last_port = port
+    #print("I'm going to telnet to", config.hostname)
+    #tn = telnetlib.Telnet('192.168.1.98')
+    #tn.read_until(b'User Name : ', 5)
+    #time.sleep(2)
+    #tn.write(b'cor\n')
+    #print(config)
+>>>>>>> Stashed changes
 
 def list_command(args, config):
     print("list command")
@@ -78,7 +152,7 @@ def set_host_command(args, config):
 
 def run_command(args, config):
     """Find function pointer for command name and call it with args and
-    config file object.  Return error code from the function, or -1 if the 
+    config file object.  Return error code from the function, or -1 if the
 
     """
     commands = { 'on': on_command,
@@ -119,6 +193,7 @@ class ConfigFile(object):
     def read(self):
         "Read config file from disk, decode yaml and populate fields"
         with open(self.filename, 'r') as handle:
+<<<<<<< Updated upstream
             data = yaml.safe_load(handle)
             self.hostname = data.get('hostname')
             self.user = data.get('user')
@@ -127,6 +202,16 @@ class ConfigFile(object):
             self.description = data.get('description')
             self.aliases = self._create_aliases(data.get('aliases'))
             self.descriptions = self._create_descriptions(data.get('aliases'))
+=======
+            self.__data = yaml.safe_load(handle)
+            self.hostname = self.__data.get('hostname')
+            self.user = self.__data.get('user')
+            self.password = self.__data.get('password')
+            self.last_port = self.__data.get('last_port')
+            self.description = self.__data.get('description')
+            self.aliases = self._create_aliases(self.__data.get('aliases'))
+            self.descriptions = self._create_descriptions(self.__data.get('aliases'))
+>>>>>>> Stashed changes
 
     def write(self):
         "Write POD to config file in yaml format"
