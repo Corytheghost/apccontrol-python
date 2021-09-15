@@ -182,14 +182,6 @@ class ConfigFile(object):
             self.description = data.get('description')
             self.aliases = self._create_aliases(data.get('aliases'))
             self.descriptions = self._create_descriptions(data.get('aliases'))
-            self.__data = yaml.safe_load(handle)
-            self.hostname = self.__data.get('hostname')
-            self.user = self.__data.get('user')
-            self.password = self.__data.get('password')
-            self.last_port = self.__data.get('last_port')
-            self.description = self.__data.get('description')
-            self.aliases = self._create_aliases(self.__data.get('aliases'))
-            self.descriptions = self._create_descriptions(self.__data.get('aliases'))
 
     def write(self):
         "Write POD to config file in yaml format"
