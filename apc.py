@@ -39,6 +39,9 @@ def main():
 
 # --------------- Command Handlers ---------------
 
+def clear():
+    os.system("clear")
+
 def on_command(args, config):
     print("on command")
     config.read()
@@ -52,8 +55,7 @@ def on_command(args, config):
         config.last_port = port
         config.write()
     print("I'm going to telnet to", config.hostname)
-    print(" to port", port)
-    print("I'm going to telnet to", config.hostname)
+    print(" to instantly power on port", port)
     tn = telnetlib.Telnet('192.168.1.98')
     tn.set_debuglevel(9)
     tn.read_until(b'User Name : ', 5)
@@ -76,47 +78,87 @@ def on_command(args, config):
     tn.write(b'YES\r')
     tn.read_until(b'continue...', 5)
     tn.write(b'\r')
+    print('Power on upon outlet port', port, 'successful.')
     return 0
-
-def clear():
-    os.system("clear")
 
 def off_command(args, config):
     print("off command")
     config.read()
+    port = args.get("<port>") or config.last_port
+    port = int(port)
+    if port is None:
+        # TODO: Send to stderror
+        print('Please specify a port number.')
+        return -1
+    if not port == config.last_port:
+        config.last_port = port
+        config.write()
+    print("I'm going to telnet to", config.hostname)
+    print(" to instantly power off port", port)
+    tn = telnetlib.Telnet('192.168.1.98')
+    tn.set_debuglevel(9)
+    tn.read_until(b'User Name : ', 5)
+    tn.write(b'cor\r')
+    tn.read_until(b'Password  : ', 5)
+    tn.write(b'dev2020\r')
+    tn.read_until(b'<CTRL-L>', 5)
+    tn.write(b'1\r')
+    tn.read_until(b'<CTRL-L>', 5)
+    tn.write(b'2\r')
+    tn.read_until(b'<CTRL-L>', 5)
+    tn.write(b'1\r')
+    tn.read_until(b'<CTRL-L>', 5)
+    tn.write(b'%d\r' % port)
+    tn.read_until(b'<CTRL-L>', 5)
+    tn.write(b'1\r')
+    tn.read_until(b'<CTRL-L>', 5)
+    tn.write(b'2\r')
+    tn.read_until(b'cancel :', 5)
+    tn.write(b'YES\r')
+    tn.read_until(b'continue...', 5)
+    tn.write(b'\r')
+    print("Power off upon outlet port", port, "successful.")
+    return 0
 
 def reset_command(args, config):
     print("reset command")
     config.read()
-    #config.read()
-    #port = args.get("<port>") or config.last_port
-    #if port is None:
-    #    print('Please specify a port number')
-    #    return -1
-    #if not port == config.last_port:
-    #    config.last_port = port
-    #print("I'm going to telnet to", config.hostname)
-    #tn = telnetlib.Telnet('192.168.1.98')
-    #tn.read_until(b'User Name : ', 5)
-    #time.sleep(2)
-    #tn.write(b'cor\n')
-    #print(config)
+    port = args.get("<port>") or config.last_port
+    port = int(port)
+    if port is None:
+        # TODO: Send to stderror
+        print('Please specify a port number.')
+        return -1
+    if not port == config.last_port:
+        config.last_port = port
+        config.write()
+    print("I'm going to telnet to", config.hostname)
+    print(" to instantly reset", port)
+    tn = telnetlib.Telnet('192.168.1.98')
+    tn.set_debuglevel(9)
+    tn.read_until(b'User Name : ', 5)
+    tn.write(b'cor\r')
+    tn.read_until(b'Password  : ', 5)
+    tn.write(b'dev2020\r')
+    tn.read_until(b'<CTRL-L>', 5)
+    tn.write(b'1\r')
+    tn.read_until(b'<CTRL-L>', 5)
+    tn.write(b'2\r')
+    tn.read_until(b'<CTRL-L>', 5)
+    tn.write(b'1\r')
+    tn.read_until(b'<CTRL-L>', 5)
+    tn.write(b'%d\r' % port)
+    tn.read_until(b'<CTRL-L>', 5)
+    tn.write(b'1\r')
+    tn.read_until(b'<CTRL-L>', 5)
+    tn.write(b'3\r')
+    tn.read_until(b'cancel :', 5)
+    tn.write(b'YES\r')
+    tn.read_until(b'continue...', 5)
+    tn.write(b'\r')
+    print("Power reset upon outlet port", port, "successful.")
+    return 0
 
-def reset_command(args, config):
-    print("reset command")
-    #config.read()
-    #port = args.get("<port>") or config.last_port
-    #if port is None:
-    #    print('Please specify a port number')
-    #    return -1
-    #if not port == config.last_port:
-    #    config.last_port = port
-    #print("I'm going to telnet to", config.hostname)
-    #tn = telnetlib.Telnet('192.168.1.98')
-    #tn.read_until(b'User Name : ', 5)
-    #time.sleep(2)
-    #tn.write(b'cor\n')
-    #print(config)
 
 def list_command(args, config):
     print("list command")
