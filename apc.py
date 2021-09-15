@@ -43,15 +43,16 @@ def on_command(args, config):
     print("on command")
     config.read()
     port = args.get("<port>") or config.last_port
+    port = int(port)
     if port is None:
         # TODO: Send to stderror
         print('Please specify a port number.')
         return -1
     if not port == config.last_port:
         config.last_port = port
+        config.write()
     print("I'm going to telnet to", config.hostname)
     print(" to port", port)
-    port = int(port)
     print("I'm going to telnet to", config.hostname)
     tn = telnetlib.Telnet('192.168.1.98')
     tn.set_debuglevel(9)
@@ -75,8 +76,7 @@ def on_command(args, config):
     tn.write(b'YES\r')
     tn.read_until(b'continue...', 5)
     tn.write(b'\r')
-    print(config)
-    config.write()
+    return 0
 
 def clear():
     os.system("clear")
