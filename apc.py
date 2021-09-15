@@ -44,6 +44,7 @@ def on_command(args, config):
     config.read()
     port = args.get("<port>") or config.last_port
     if port is None:
+        # TODO: Send to stderror
         print('Please specify a port number.')
         return -1
     if not port == config.last_port:
