@@ -44,6 +44,12 @@ def main():
 def clear():
     os.system("clear")
 
+def login(tn, config):
+    tn.read_until(b'User Name : ', 5)
+    tn.write(b'%s\r' % config.user.encode('utf-8'))
+    tn.read_until(b'Password  : ', 5)
+    tn.write(b'%s\r' % config.password.encode('utf-8'))
+    
 def on_command(args, config):
     print("on command")
     config.read()
@@ -59,10 +65,7 @@ def on_command(args, config):
     print(" to instantly power on port", port)
     tn = telnetlib.Telnet('192.168.1.98')
     tn.set_debuglevel(9)
-    tn.read_until(b'User Name : ', 5)
-    tn.write(b'cor\r')
-    tn.read_until(b'Password  : ', 5)
-    tn.write(b'dev2020\r')
+    login(tn, config)
     tn.read_until(b'<CTRL-L>', 5)
     tn.write(b'1\r')
     tn.read_until(b'<CTRL-L>', 5)
@@ -85,24 +88,19 @@ def on_command(args, config):
 def off_command(args, config):
     print("off command")
     config.read()
-    #port = args.get("<port>") or config.last_port
-    port = None
+    port = args.get("<port>") or config.last_port
+    port = int(port)
     if port is None:
-        # TODO: Send to stderror
-        #sys.stderr.write(json.dumps(config.__init__, ensure_ascii=False, sort_keys=True, indent=4).encode('utf-8', 'replace'))
         sys.stderr.write('Error: %s\n' % 'Please specify a port number.')
         return -1
-    #if not port == config.last_port:
-    #    config.last_port = port
-    #    config.write()
+    if not port == config.last_port:
+        config.last_port = port
+        config.write()
     print("I'm going to telnet to", config.hostname)
     print(" to instantly power off port", port)
     tn = telnetlib.Telnet('192.168.1.98')
     tn.set_debuglevel(9)
-    tn.read_until(b'User Name : ', 5)
-    tn.write(b'cor\r')
-    tn.read_until(b'Password  : ', 5)
-    tn.write(b'dev2020\r')
+    login(tn, config)
     tn.read_until(b'<CTRL-L>', 5)
     tn.write(b'1\r')
     tn.read_until(b'<CTRL-L>', 5)
@@ -137,10 +135,7 @@ def reset_command(args, config):
     print(" to instantly reset", port)
     tn = telnetlib.Telnet('192.168.1.98')
     tn.set_debuglevel(9)
-    tn.read_until(b'User Name : ', 5)
-    tn.write(b'cor\r')
-    tn.read_until(b'Password  : ', 5)
-    tn.write(b'dev2020\r')
+    login(tn, config)
     tn.read_until(b'<CTRL-L>', 5)
     tn.write(b'1\r')
     tn.read_until(b'<CTRL-L>', 5)
@@ -167,10 +162,7 @@ def list_command(args, config):
     print("I'm listing current outlet status at", config.hostname)
     tn = telnetlib.Telnet('192.168.1.98')
     tn.set_debuglevel(9)
-    tn.read_until(b'User Name : ') 
-    tn.write(b'cor\r')
-    tn.read_until(b'Password  : ')
-    tn.write(b'dev2020\r')
+    login(tn, config)
     tn.read_until(b'<CTRL-L>')
     tn.write(b'1\r')
     tn.read_until(b'<CTRL-L>')
@@ -199,10 +191,7 @@ def set_alias_command(args, config):
     print(" to instantly reset", port)
     tn = telnetlib.Telnet('192.168.1.98')
     tn.set_debuglevel(9)
-    tn.read_until(b'User Name : ')
-    tn.write(b'cor\r')
-    tn.read_until(b'Password  : ')
-    tn.write(b'1\r')
+    login(tn, config)
     tn.write(b'2\r')
     tn.write(b'1\r')
     tn.write(b'1\r')
