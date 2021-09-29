@@ -22,12 +22,14 @@ Options:
   --config <filename>    Point to custom config file [default: ~/.config/apc/config.yaml]
 
 """
+import re
 import os
 import sys
 import yaml
 import docopt
 import os.path
 import telnetlib
+import json
 
 # --------------- Application Entrypoint ---------------
 
@@ -48,8 +50,7 @@ def on_command(args, config):
     port = args.get("<port>") or config.last_port
     port = int(port)
     if port is None:
-        # TODO: Send to stderror
-        print('Please specify a port number.')
+        sys.stderr.write('Error: Please specify a port number.\n')
         return -1
     if not port == config.last_port:
         config.last_port = port
@@ -84,15 +85,16 @@ def on_command(args, config):
 def off_command(args, config):
     print("off command")
     config.read()
-    port = args.get("<port>") or config.last_port
-    port = int(port)
+    #port = args.get("<port>") or config.last_port
+    port = None
     if port is None:
         # TODO: Send to stderror
-        print('Please specify a port number.')
+        #sys.stderr.write(json.dumps(config.__init__, ensure_ascii=False, sort_keys=True, indent=4).encode('utf-8', 'replace'))
+        sys.stderr.write('Error: %s\n' % 'Please specify a port number.')
         return -1
-    if not port == config.last_port:
-        config.last_port = port
-        config.write()
+    #if not port == config.last_port:
+    #    config.last_port = port
+    #    config.write()
     print("I'm going to telnet to", config.hostname)
     print(" to instantly power off port", port)
     tn = telnetlib.Telnet('192.168.1.98')
@@ -126,8 +128,7 @@ def reset_command(args, config):
     port = args.get("<port>") or config.last_port
     port = int(port)
     if port is None:
-        # TODO: Send to stderror
-        print('Please specify a port number.')
+        sys.stderr.write('Error: %s\n' % 'Please specify a port number.')
         return -1
     if not port == config.last_port:
         config.last_port = port
@@ -163,9 +164,53 @@ def reset_command(args, config):
 def list_command(args, config):
     print("list command")
     config.read()
+    print("I'm listing current outlet status at", config.hostname)
+    tn = telnetlib.Telnet('192.168.1.98')
+    tn.set_debuglevel(9)
+    tn.read_until(b'User Name : ') 
+    tn.write(b'cor\r')
+    tn.read_until(b'Password  : ')
+    tn.write(b'dev2020\r')
+    tn.read_until(b'<CTRL-L>')
+    tn.write(b'1\r')
+    tn.read_until(b'<CTRL-L>')
+    tn.write(b'2\r')
+    tn.read_until(b'<CTRL-L>')
+    tn.write(b'1\r')
+    data = tn.read_until(b'<ESC>') 
+    matches = re.search(r'Device 1 +(ON|OFF)\r\n.*?Device 2 +(ON|OFF)\r\n.*?Device 3 +(ON|OFF)\r\n.*?Device 4 +(ON|OFF)\r\n.*?Device 5 +(ON|OFF)\r\n.*?Device 6 +(ON|OFF)\r\n.*?Device 7 +(ON|OFF)\r\n.*?Device 8 +(ON|OFF)', data.decode('utf-8'), re.MULTILINE)
+    print(data.decode('utf-8'))
+    print(matches.group(1,2,3,4,5,6,7,8))
 
 def set_alias_command(args, config):
     print("set alias command")
+    config.read()
+    num = args.get("<port>")
+    name = args.get("<name>")
+    if name is None:
+        sys.stderr.write('Error: %s\n' % 'Please specify a new alias name for this port.')
+        return -1
+        config.write()
+    if num is None:
+        sys.stderr.write('Error: %s\n' % 'Please specify a port for the alias name change.')
+        return -1
+        config.write()
+    print("I'm going to telnet to", config.hostname)
+    print(" to instantly reset", port)
+    tn = telnetlib.Telnet('192.168.1.98')
+    tn.set_debuglevel(9)
+    tn.read_until(b'User Name : ')
+    tn.write(b'cor\r')
+    tn.read_until(b'Password  : ')
+    tn.write(b'1\r')
+    tn.write(b'2\r')
+    tn.write(b'1\r')
+    tn.write(b'1\r')
+    tn.write(b'%d\r' % num)
+    tn.write(b'2\r')
+    tn.write(b'1\r')
+    tn.read_until(b'Outlet Name : ')
+    input('New Outlet Name :')
 
 def rm_alias_command(args, config):
     print("rm alias command")
