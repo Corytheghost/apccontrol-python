@@ -177,29 +177,16 @@ def list_command(args, config):
 def set_alias_command(args, config):
     print("set alias command")
     config.read()
-    num = args.get("<port>")
+    num = int(args.get("<num>"))
+    if num is None:
+        sys.stderr.write('Error: %s\n' % 'Please specify a port for the alias name change.')
+        return -1
     name = args.get("<name>")
     if name is None:
         sys.stderr.write('Error: %s\n' % 'Please specify a new alias name for this port.')
         return -1
-        config.write()
-    if num is None:
-        sys.stderr.write('Error: %s\n' % 'Please specify a port for the alias name change.')
-        return -1
-        config.write()
-    print("I'm going to telnet to", config.hostname)
-    print(" to instantly reset", port)
-    tn = telnetlib.Telnet('192.168.1.98')
-    tn.set_debuglevel(9)
-    login(tn, config)
-    tn.write(b'2\r')
-    tn.write(b'1\r')
-    tn.write(b'1\r')
-    tn.write(b'%d\r' % num)
-    tn.write(b'2\r')
-    tn.write(b'1\r')
-    tn.read_until(b'Outlet Name : ')
-    input('New Outlet Name :')
+    config.set_alias(num, name)
+    config.write()
 
 def rm_alias_command(args, config):
     print("rm alias command")
@@ -273,7 +260,13 @@ class ConfigFile(object):
 
     def set_alias(self, num, name):
         "Add or overwrite a port alias"
-        pass
+        if self.aliases[num] == name:
+            return 0
+        if name in self.aliases.values():
+            print('Duplicate')
+            return -1
+        self.aliases[num] = name
+        return 0
 
     def rm_alias(self, name):
         """Remove a port alias.  Return True if we removed an existing alias,
